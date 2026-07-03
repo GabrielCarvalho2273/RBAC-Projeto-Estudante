@@ -144,18 +144,107 @@ def delete_usuarios():
             if escolha_sair.lower() != 's':
                 break
 
+def delete_prof_x_disc():
+    with sqlite3.connect('db_turns.db') as conn:
+        cursor = conn.cursor()
+        while True:
+            print('\nProfessores disponíveis:')
+            cursor.execute("SELECT ID, Nome FROM Usuarios WHERE Papel_ID = 2")
+            for linha in cursor.fetchall():
+                print(linha)
+
+            print('\nDisciplinas disponíveis:')
+            cursor.execute("SELECT ID, Nome FROM Disciplinas")
+            for linha in cursor.fetchall():
+                print(linha)
+
+            print('\nProfessor x Disciplina disponíveis:')
+            cursor.execute("SELECT * FROM Professor_x_Disciplina")
+            for linha in cursor.fetchall():
+                print(linha)
+
+            vprof_ID = int(input('Digite o ID do Professor: '))
+            vdisc_ID = int(input('Digite o ID da Disciplina: '))
+
+            cursor.execute("SELECT * FROM Professor_x_Disciplina WHERE Professor_ID = ? AND Disciplina_ID = ?", (vprof_ID, vdisc_ID))
+            prof_x_disc = cursor.fetchone()
+
+            if prof_x_disc:
+                print(f'Deseja realmente excluir o vínculo do Professor ID {vprof_ID} com a Disciplina ID {vdisc_ID}?')
+                escolha_deletar = input('S/N: ')
+
+                if escolha_deletar.lower() == 's':
+                    cursor.execute("DELETE FROM Professor_x_Disciplina WHERE Professor_ID = ? AND Disciplina_ID = ?", (vprof_ID, vdisc_ID))
+                    conn.commit()
+                    print(f"Vínculo Professor x Disciplina ({vprof_ID} x {vdisc_ID}) excluído com sucesso.")
+            else:
+                print("Vínculo Professor x Disciplina não encontrado. Tente novamente.")
+
+            print('Deseja excluir outro vínculo?')
+            escolha_sair = input('S/N: ')
+            if escolha_sair.lower() != 's':
+                break
+
+
+def delete_disciplinas():
+    with sqlite3.connect('db_turns.db') as conn:
+        cursor = conn.cursor()
+        while True:
+
+            print('\n Permissões disponiveis: ')
+
+            cursor.execute("SELECT ID, Nome FROM Permissoes")
+            for linha in cursor.fetchall():
+                print(linha)
+
+            vID = int(input('Digite o ID: '))
+
+            cursor.execute("SELECT * FROM Permissoes WHERE ID = ? ", (vID,))
+            permissao = cursor.fetchone()
+
+            if permissao:
+                print(f'Deseja realmente excluir a disciplina: {permissao[1]} (ID: {permissao[0]})?')
+                escolha_deletar = input('S/N: ')
+
+                if escolha_deletar.lower() == 's':
+                    cursor.execute("DELETE FROM Permissoes WHERE ID = ?", (vID,))
+                    conn.commit()
+                    print(f"Disciplina com ID {vID}, excluída com sucesso.")
+            else:
+                print("Disciplina não encontrada. Tente novamente.")
+
+            print('deseja excluir mais/outro?')
+            escolha_sair = input('S/N: ')
+
+            if escolha_sair.lower() != 's':
+                break
+
+
 def main_delete():
     while True:
-        print('qual tabela deseja adicionar dados?')
-        print('\n1- papeis \n2- permissão \n3- permissão x papeis \n4- Usuarios \n5- Sair')
+        print('\nQual tabela deseja excluir dados?')
+        print('1 - Papeis')
+        print('2 - Permissões')
+        print('3 - Permissões x Papeis')
+        print('4 - Usuários')
+        print('5 - Professor x Disciplina')
+        print('6 - Disciplinas')
+        print('7 - Sair')
 
-        escolha_tabela = input('Digite o numero: ')
-        tabelas = {'1': delete_papeis, '2': delete_permissoes, '3': delete_permis_x_papeis, '4': delete_usuarios}
+        escolha_tabela = input('Digite o número: ')
+        tabelas = {
+            '1': delete_papeis,
+            '2': delete_permissoes,
+            '3': delete_permis_x_papeis,
+            '4': delete_usuarios,
+            '5': delete_prof_x_disc,
+            '6': delete_disciplinas
+        }
 
-        if escolha_tabela == '5':
-            print('encerrando')
+        if escolha_tabela == '7':
+            print('Encerrando.')
             break
         elif escolha_tabela in tabelas:
             tabelas[escolha_tabela]()
         else:
-            print('Opção inválida!! Tente novamente.')
+            print('Opção inválida! Tente novamente.')
